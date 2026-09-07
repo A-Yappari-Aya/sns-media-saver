@@ -10,6 +10,7 @@ X (Twitter) / Instagram / TikTok / YouTube の**公開投稿**URLからメディ
 |---------|------|
 | `web` | Next.js (App Router) UI + `/api/resolve` |
 | `worker` | yt-dlp + ffmpeg によるメディア解決 |
+| `mobile` | Expo (iOS / Android) — 同一 `/api/resolve` |
 
 Vercel 等のサーバーレスのみでは yt-dlp が動かないため、**本番では worker を別途ホスティング**してください。`WORKER_URL` で Web から接続します。
 
@@ -93,6 +94,47 @@ URL バリデータ（許可ホスト・私有IP拒否など）のスモーク�
 - レート制限・タイムアウト・サイズ上限あり
 - 資格情報付き URL / ローカルアドレスは拒否
 - それでも規約違反・著作権リスクは利用者側に残ります（利用規約 `/terms` 参照）
+
+
+## モバイルアプリ (Expo / React Native)
+
+`mobile/` に iOS / Android 向け Expo アプリがあります。Web と同じ `POST /api/resolve`（`EXPO_PUBLIC_API_URL`）を呼び出します。
+
+### 起動
+
+```bash
+# 先に Web + worker を起動（例: docker compose up --build）
+cd mobile
+cp .env.example .env
+bun install
+npx expo start
+```
+
+- iOS Simulator: `npx expo start --ios`
+- Android Emulator: `npx expo start --android`（API 既定は `http://10.0.2.2:3000/api`）
+- 実機: LAN 上のマシン IP を `EXPO_PUBLIC_API_URL` に設定
+
+利用規約・プライバシーは `EXPO_PUBLIC_WEB_ORIGIN` の `/terms` `/privacy` を WebBrowser で開きます（失敗時はアプリ内テキスト）。
+
+### AdMob
+
+- パッケージ: `react-native-google-mobile-ads`
+- 既定は Google テスト用 App ID / バナー ID（ホーム・結果画面にバナー）
+- 本番 ID は `EXPO_PUBLIC_ADMOB_*` と `EXPO_PUBLIC_ADMOB_USE_TEST=0`
+- Expo Go では広告ネイティブモジュールは動きません。EAS の development / production ビルドが必要です。
+
+### EAS Build / Xcode Cloud
+
+```bash
+cd mobile
+eas login
+eas build --platform android --profile preview
+eas build --platform ios --profile production
+```
+
+iOS の本番配信では Xcode Cloud を使う選択肢もあります。GitHub Actions の macOS ランナーを必須にはしていません。
+
+Docker Compose の `web` / `worker` 構成は変更していません。
 
 ## ライセンス
 
