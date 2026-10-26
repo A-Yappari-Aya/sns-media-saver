@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: process.env.DOCKER_BUILD === "1" ? "standalone" : undefined,
+  output: process.env.CAPACITOR_BUILD === "1" || process.env.DOCKER_BUILD === "1" ? (process.env.CAPACITOR_BUILD === "1" ? "export" : "standalone") : undefined,
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "**" },
       { protocol: "http", hostname: "**" },
