@@ -1,0 +1,30 @@
+{
+  "name": "mediasaver-mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "expo": "~57.0.20",
+    "expo-clipboard": "^57.0.1",
+    "expo-constants": "^57.0.17",
+    "expo-file-system": "^57.0.6",
+    "expo-linking": "^57.0.9",
+    "expo-sharing": "^57.0.18",
+    "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "^57.0.2",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-google-mobile-ads": "^16.5.0",
+    "react-native-safe-area-context": "^5.9.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "private": true
+}
