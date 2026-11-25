@@ -1,5 +1,5 @@
 # Worker image: Node + yt-dlp + ffmpeg
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl ffmpeg python3 \
     && rm -rf /var/lib/apt/lists/*
@@ -13,4 +13,6 @@ ENV NODE_ENV=production
 ENV PORT=4100
 ENV YT_DLP_PATH=yt-dlp
 EXPOSE 4100
+# Run as the unprivileged "node" user that ships with the base image
+USER node
 CMD ["node", "src/index.js"]

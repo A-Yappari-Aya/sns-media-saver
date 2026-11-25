@@ -7,5 +7,5 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js"
   },
-  "engines": { "node": ">=20" }
+  "engines": { "node": ">=22.12.0" }
 }

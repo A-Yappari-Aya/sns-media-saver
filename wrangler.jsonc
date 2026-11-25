@@ -1,0 +1,23 @@
+{
+  // Cloudflare Workers config for the web app (Next.js via @opennextjs/cloudflare).
+  // Not deployed yet. See README "デプロイ (Cloudflare Workers)".
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sns-media-saver",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "sns-media-saver" }
+  ],
+  "observability": { "enabled": true },
+  // Non-secret runtime vars. WORKER_URL / WORKER_TOKEN are set with `wrangler secret put`.
+  "vars": {
+    "RATE_LIMIT_MAX": "20",
+    "RATE_LIMIT_WINDOW_SEC": "60",
+    "RESOLVE_TIMEOUT_MS": "45000"
+  }
+}
