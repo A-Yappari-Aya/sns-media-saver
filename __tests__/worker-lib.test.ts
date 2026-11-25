@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hostOk, detectPlatform, mapInfo, isAuthorized } from "../worker/src/lib.js";
+import { hostOk, detectPlatform, mapInfo, isAuthorized, readWorkerAuthConfig } from "../worker/src/lib.js";
 
 describe("worker hostOk / detectPlatform", () => {
   it("allows only supported SNS hosts", () => {
@@ -53,12 +53,44 @@ describe("worker mapInfo", () => {
 });
 
 describe("worker isAuthorized", () => {
-  it("allows everything when no token is configured", () => {
-    expect(isAuthorized(undefined, "")).toBe(true);
+  it("denies requests when no token is configured (fail closed)", () => {
+    expect(isAuthorized(undefined, "")).toBe(false);
+    expect(isAuthorized("Bearer anything", "")).toBe(false);
+  });
+  it("allows unauthenticated requests only with the explicit insecure flag", () => {
+    expect(isAuthorized(undefined, "", { allowInsecure: true })).toBe(true);
   });
   it("requires the exact bearer token when configured", () => {
     expect(isAuthorized("Bearer s3cret", "s3cret")).toBe(true);
     expect(isAuthorized("Bearer wrong!", "s3cret")).toBe(false);
     expect(isAuthorized(undefined, "s3cret")).toBe(false);
+    expect(isAuthorized("Bearer s3cret", "s3cret", { allowInsecure: true })).toBe(true);
+  });
+});
+
+describe("worker readWorkerAuthConfig", () => {
+  it("accepts a non-empty token in any environment", () => {
+    expect(readWorkerAuthConfig({ WORKER_TOKEN: "  secret  ", NODE_ENV: "production" })).toEqual({
+      ok: true,
+      token: "secret",
+      insecure: false,
+    });
+  });
+  it("refuses to start in production without a token, even with the insecure flag", () => {
+    const r = readWorkerAuthConfig({ NODE_ENV: "production", ALLOW_INSECURE_WORKER_NO_AUTH: "true" });
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/WORKER_TOKEN is required/);
+  });
+  it("refuses to start in development without a token or the insecure flag", () => {
+    const r = readWorkerAuthConfig({ NODE_ENV: "development" });
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/ALLOW_INSECURE_WORKER_NO_AUTH/);
+  });
+  it("allows tokenless local start only with ALLOW_INSECURE_WORKER_NO_AUTH=true", () => {
+    expect(readWorkerAuthConfig({ NODE_ENV: "development", ALLOW_INSECURE_WORKER_NO_AUTH: "true" })).toEqual({
+      ok: true,
+      token: "",
+      insecure: true,
+    });
   });
 });

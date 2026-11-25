@@ -23,6 +23,7 @@ Vercel 等のサーバーレスのみでは yt-dlp が動かないため、**本
 
 ```bash
 cp .env.example .env
+# .env の WORKER_TOKEN を openssl rand -hex 32 などで必ず置き換える
 docker compose up --build
 ```
 
@@ -45,6 +46,7 @@ yt-dlp を PATH に置くか、`/workspace/bin/yt-dlp` 等を `YT_DLP_PATH` に�
 ```bash
 export YT_DLP_PATH=yt-dlp
 export PORT=4100
+export WORKER_TOKEN=change-me-local-only   # または ALLOW_INSECURE_WORKER_NO_AUTH=true
 npm run worker:start
 ```
 
@@ -65,7 +67,8 @@ http://localhost:3000 を開きます。
 | 変数 | 説明 |
 |------|------|
 | `WORKER_URL` | ワーカーのベース URL |
-| `WORKER_TOKEN` | Web↔ワーカー間の共有シークレット（本番は必須） |
+| `WORKER_TOKEN` | Web↔ワーカー間の共有シークレット（必須。未設定ならワーカーは起動しない） |
+| `ALLOW_INSECURE_WORKER_NO_AUTH` | `true` のときだけ、本番以外でトークンなし起動を許可（ループバック開発用） |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | AdSense クライアント ID |
 | `NEXT_PUBLIC_ADSENSE_SLOT_TOP` / `_RESULT` | 広告スロット |
 | `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_SEC` | API レート制限 |
@@ -83,7 +86,8 @@ npm test
 - `__tests__/validate-url.test.ts`: URL バリデータ（許可ホスト・私有IP拒否など）
 - `__tests__/resolve-route.test.ts`: `/api/resolve`（入力検証・ワーカー未設定・トークン転送・障害時・レート制限）
 - `__tests__/rate-limit.test.ts`: レート制限とクライアント IP 判定（`cf-connecting-ip` 優先）
-- `__tests__/worker-lib.test.ts`: ワーカーのホスト判定・yt-dlp 結果の変換・トークン認証
+- `__tests__/worker-lib.test.ts`: ワーカーのホスト判定・yt-dlp 結果の変換・トークン認証・起動設定
+- `__tests__/worker-http.test.ts`: ワーカー HTTP（401/400/200、本番でトークン無しなら起動しない）
 
 `npm run check` で型チェック・テスト・本番ビルドをまとめて実行します。
 
@@ -117,7 +121,7 @@ docker run -d --name sns-worker --restart unless-stopped \
 curl http://<server>:4100/health
 ```
 
-- `WORKER_TOKEN` を設定すると `/resolve` は `Authorization: Bearer <token>` が無いと 401 を返します（未設定なら認証なし。本番では必ず設定）。
+- `WORKER_TOKEN` は必須です。未設定のまま `NODE_ENV=production`（ワーカーイメージの既定）で起動するとプロセスが終了します。`/resolve` は `Authorization: Bearer <token>` が無いと 401 を返します。ローカルでトークンなしを試すときだけ `ALLOW_INSECURE_WORKER_NO_AUTH=true` を付けます（本番では無効）。
 - Cloudflare Workers からは**公開 HTTPS の URL**で到達できる必要があります（`global_fetch_strictly_public` を有効にしているため、プライベート IP には届きません）。Caddy などのリバースプロキシで TLS を終端するか、Cloudflare Tunnel を使ってください。
 - yt-dlp は SNS 側の仕様変更で壊れやすいので、定期的にイメージを作り直して最新版にしてください。
 - 代替: Fly.io / Render / Cloud Run でも `worker/Dockerfile` がそのまま使えます。Cloudflare Containers も選択肢ですが Workers Paid プランが必要です（未検証）。
@@ -162,7 +166,7 @@ curl https://<your-worker>.workers.dev/api/health   # {"ok":true,...,"worker":"o
 ### Docker Compose で一式を自前サーバーに置く場合
 
 ```bash
-cp .env.example .env    # WORKER_TOKEN を設定
+cp .env.example .env    # WORKER_TOKEN を必ず本番用の値に置き換える
 docker compose up -d --build
 ```
 

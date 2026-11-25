@@ -64,11 +64,42 @@ export function mapInfo(info, sourceUrl) {
 }
 
 /**
- * Optional shared-secret auth between the web app and this worker.
- * When WORKER_TOKEN is empty, every request is allowed (local / docker compose).
+ * Decide whether the worker may start without a shared secret.
+ * Production always requires WORKER_TOKEN. Elsewhere a token is still
+ * required unless ALLOW_INSECURE_WORKER_NO_AUTH=true (loopback dev only).
  */
-export function isAuthorized(authHeader, token) {
-  if (!token) return true;
+export function readWorkerAuthConfig(env = process.env) {
+  const token = String(env.WORKER_TOKEN || "").trim();
+  const allowInsecure = env.ALLOW_INSECURE_WORKER_NO_AUTH === "true";
+  const isProd = env.NODE_ENV === "production";
+  if (token) {
+    return { ok: true, token, insecure: false };
+  }
+  if (isProd) {
+    return {
+      ok: false,
+      token: "",
+      insecure: false,
+      error: "WORKER_TOKEN is required when NODE_ENV=production. Refusing to start an unauthenticated worker.",
+    };
+  }
+  if (!allowInsecure) {
+    return {
+      ok: false,
+      token: "",
+      insecure: false,
+      error: "WORKER_TOKEN is required. For local loopback only, set ALLOW_INSECURE_WORKER_NO_AUTH=true.",
+    };
+  }
+  return { ok: true, token: "", insecure: true };
+}
+
+/**
+ * Shared-secret auth between the web app and this worker.
+ * An empty token is denied unless allowInsecure is set (dev opt-out only).
+ */
+export function isAuthorized(authHeader, token, { allowInsecure = false } = {}) {
+  if (!token) return allowInsecure === true;
   const expected = Buffer.from("Bearer " + token);
   const got = Buffer.from(String(authHeader || ""));
   if (got.length !== expected.length) return false;
