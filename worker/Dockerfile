@@ -1,5 +1,5 @@
 # Worker image: Node + yt-dlp + ffmpeg
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl ffmpeg python3 \
     && rm -rf /var/lib/apt/lists/*

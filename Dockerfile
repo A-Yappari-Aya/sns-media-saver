@@ -1,10 +1,14 @@
-# Web image for media saver
-FROM node:20-bookworm-slim AS deps
+# Web image for media saver.
+# Vitest 5 and this lockfile need Node 22+. Install from bun.lock so the
+# image cannot silently float past the versions we tested (plain `npm install`
+# also used to fail with ERESOLVE on @types/node 20 vs vitest 5).
+FROM node:22-bookworm-slim AS deps
 WORKDIR /app
-COPY package.json package-lock.json* bun.lock* ./
-RUN npm install
+COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DOCKER_BUILD=1
@@ -12,7 +16,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:20-bookworm-slim AS runner
+FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

@@ -15,7 +15,7 @@ Vercel 等のサーバーレスのみでは yt-dlp が動かないため、**本
 
 ## 必要環境
 
-- Node.js 20+
+- Node.js 22.12+
 - （推奨）Docker / Docker Compose
 - ローカル検証時: yt-dlp / ffmpeg
 
@@ -34,8 +34,8 @@ docker compose up --build
 ### 1. 依存関係
 
 ```bash
-npm install
-# または bun install
+bun install          # bun.lock が正（推奨）
+# または npm install  # Node 22.12+ が必要。lock は bun.lock を使ってください
 ```
 
 ### 2. ワーカー起動
@@ -99,7 +99,7 @@ yt-dlp / ffmpeg は Python とネイティブバイナリが要るので、Cloud
 ### 0. 事前チェック（ローカル）
 
 ```bash
-bun install          # または npm install
+bun install          # bun.lock が正（Docker の web イメージもこれを使う）
 npm run check        # 型チェック + テスト + next build
 npm run cf:build     # OpenNext で .open-next/ を生成（Cloudflare アカウント不要）
 npx wrangler dev     # http://localhost:8787 でローカル確認（アカウント不要）
