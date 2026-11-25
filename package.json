@@ -13,26 +13,33 @@
     "worker:start": "node worker/src/index.js",
     "cap:add:android": "cap add android",
     "cap:sync": "cap sync",
-    "cap:open:android": "cap open android"
+    "cap:open:android": "cap open android",
+    "typecheck": "tsc --noEmit",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "check": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.1.0",
+    "@capacitor/android": "^6.0.0",
     "@capacitor/core": "^6.0.0",
-    "@capacitor/android": "^6.0.0"
+    "next": "15.5.29",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
     "@eslint/eslintrc": "^3",
+    "@opennextjs/cloudflare": "1.20.18",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.1.0",
+    "eslint-config-next": "15.5.29",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vitest": "2.1.8",
-    "@capacitor/cli": "^6.0.0"
+    "wrangler": "4.168.0"
   }
 }

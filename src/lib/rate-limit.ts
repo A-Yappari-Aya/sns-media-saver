@@ -3,6 +3,9 @@ type Bucket = { count: number; resetAt: number };
 const store = new Map<string, Bucket>();
 
 export function getClientIp(headers: Headers): string {
+  // Cloudflare sets cf-connecting-ip to the real client address.
+  const cf = headers.get("cf-connecting-ip");
+  if (cf) return cf.trim();
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
   return headers.get("x-real-ip") || "unknown";

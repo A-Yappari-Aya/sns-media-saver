@@ -8,6 +8,13 @@ export const dynamic = "force-dynamic";
 
 const MAX_BODY = 4096;
 
+function workerHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = process.env.WORKER_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req.headers);
   const rl = rateLimit(`resolve:${ip}`);
@@ -67,7 +74,7 @@ export async function POST(req: NextRequest) {
   try {
     const res = await fetch(`${workerUrl}/resolve`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: workerHeaders(),
       body: JSON.stringify({ url: validated.url.toString() }),
       signal: AbortSignal.timeout(timeoutMs),
       cache: "no-store",
