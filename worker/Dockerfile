@@ -13,4 +13,6 @@ ENV NODE_ENV=production
 ENV PORT=4100
 ENV YT_DLP_PATH=yt-dlp
 EXPOSE 4100
+# Run as the unprivileged "node" user that ships with the base image
+USER node
 CMD ["node", "src/index.js"]
